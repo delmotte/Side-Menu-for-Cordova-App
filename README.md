@@ -1,2 +1,6 @@
 # Side-Menu-for-Cordova-App
-First Customable template For Side Menu
+
+You can run it on your computer or on your smartphone.
+
+Only pure Javascript here.
+Using animate.css library and a piece of code found on Stack Overflow.

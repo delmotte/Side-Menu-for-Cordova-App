@@ -1,0 +1,203 @@
+<!--
+
+	Author : Jean-Yves DELMOTTE
+	Version : 0.1 (3 April 2015)
+
+-->
+
+<html>
+
+	<head>
+
+		<title> Amazing app </title>
+		<link href="animate.css" rel="stylesheet" type="text/css"/>
+		<link href="menutoarrow.css" rel="stylesheet" type="text/css"/>
+
+		<style type="text/css">
+
+			/* My own CSS */
+
+			html, body {margin:0;padding:0;font-family: sans-serif;}
+			header {display:table;table-layout: fixed;width:100%;top:0px;height:50px;position:fixed;background-color: darkblue;color:white;border-bottom: 2px white solid;}
+			header cell {display:table-cell;text-align:center;vertical-align: middle;}
+			header cell:first-child {width:15%;padding:10px;cursor: pointer;}
+			header cell:nth-child(2) {width:70%;max-width: 100px;font-size:25px;overflow:hidden;white-space: nowrap;}
+			header cell:last-child {width:15%;padding:10px;}
+			content {top:52px;display:block;position:fixed;bottom:0px;width:100%;background-color:darkred;padding:50px;color:white;}
+			sidemenu {display:none;position:fixed;top:52px;bottom:0px;width:80%;max-width:300px;background-color: darkblue;-webkit-animation-duration: .5s!important;animation-duration: .5s!important;z-index:12;}
+			listitem {display:block;padding-top: 10px;padding-bottom: 10px;padding-left: 10px;border-bottom: 1px black solid;font-size:20px;color:white;}
+			
+		</style>
+
+	</head>
+	<body>
+
+		<!-- Hey ! this is the header -->
+		<header>
+			<cell id="showmenu">
+				<span>
+					<a class="navicon-button rarr">
+						<div class="navicon"></div>
+					</a>
+				</span>
+			</cell>
+			<cell>Title Here</cell>
+			<cell></cell>
+		</header>
+
+		<!-- Hey ! this is the side menu -->
+		<sidemenu>
+			<listitem>Home</listitem>
+			<listitem>Profile</listitem>
+			<listitem>About</listitem>
+			<listitem>Contact</listitem>
+		</sidemenu>
+
+		<!-- Hey ! this is the content -->
+		<content>
+			Hey this is here that you put your custom View !
+		</content>
+
+
+		<!-- Uncomment this line if running into Cordova -->
+		<!--<script type="text/javascript" src="cordova.js"></script>-->
+		<script type="text/javascript">
+
+			(function() {
+
+				// to get X, Y if the event is from a mobile or a mouse
+				var pointerEventToXY = function(e) {
+					var out = {pageX:0, pageY:0};
+					if(e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend' || e.type == 'touchcancel'){
+					var touch = e.touches[0] || e.changedTouches[0];
+						out.pageX = touch.pageX;
+						out.pageY = touch.pageY;
+					} else if (e.type == 'mousedown' || e.type == 'mouseup' || e.type == 'mousemove' || e.type == 'mouseover'|| e.type=='mouseout' || e.type=='mouseenter' || e.type=='mouseleave') {
+						out.pageX = e.pageX;
+						out.pageY = e.pageY;
+					}
+					return out;
+				};
+
+				// to add multiple listener at a time
+				function addMultiListener(el, s, fn) {
+					var evts = s.split(' ');
+					for (var i=0, iLen=evts.length; i<iLen; i++) {
+						el.addEventListener(evts[i], fn, false);
+					}
+				}
+
+				document.querySelector('sidemenu').classList.add('animated');
+
+				// to know the state of the side menu
+				var isShown = false;
+				var hidding = false;
+				var showing = false;
+
+				// from 0 to 20px from the left you can swipe the menu
+				// to avoid showing the menu when just scrolling content
+				var wheretostart = 20;
+
+				// 70% of the menu must be swiped to be shown when you release the touch
+				var floor = 0.7;
+
+				// add event on the menu button
+				addMultiListener(document.querySelector('#showmenu'), 'mousedown touchstart', function () {
+					if (isShown) {
+						// let's hide it's not hidding
+						if (!hidding) {
+							hidding = true;
+							document.querySelector('a').classList.toggle('open');
+							document.querySelector('header cell:first-child').classList.toggle('opened');
+							document.querySelector('sidemenu').classList.remove('slideInLeft');
+							document.querySelector('sidemenu').classList.add('slideOutLeft');
+							setTimeout(function() {
+								document.querySelector('sidemenu').style.display = 'none';
+								isShown = false;
+								hidding = false;
+							},500);
+						}
+					} else {
+						// let's show it if it's not showing
+						if (!showing) {
+							showing = true;
+							document.querySelector('a').classList.toggle('open');
+							document.querySelector('header cell:first-child').classList.toggle('opened');
+							document.querySelector('sidemenu').classList.remove('slideOutLeft');
+							document.querySelector('sidemenu').classList.add('slideInLeft');
+							document.querySelector('sidemenu').style.display = 'block';
+							setTimeout(function () {
+								showing = false;
+								isShown = true;
+							}, 500);
+						}
+						
+					}
+				});
+
+				// add swipe event (please remove this for android < 4.0 using Cordova)
+				var clicking = false;
+				var xdep = 0;
+
+				addMultiListener(document.querySelector('content'), 'mousedown touchstart', function (event) {
+					clicking = true;
+					xdep = pointerEventToXY(event).pageX;
+				});
+
+				addMultiListener(document.querySelector('content'), 'mouseup touchend', function (event) {
+					clicking = false;
+					event = pointerEventToXY(event);
+					if (event.pageX - xdep > 0 && xdep < wheretostart) { // swipe vers la droite
+						if (!isShown && event.pageX - xdep < document.querySelector('sidemenu').clientWidth * floor) {
+							document.querySelector('sidemenu').classList.add('slideOutLeft');
+							hidding = true;
+							setTimeout(function() {
+								document.querySelector('sidemenu').style.display = 'none';
+								isShown = false;
+								hidding = false;
+							},500);
+						} else {
+							document.querySelector('sidemenu').style.right = 'inherit';
+							if (!isShown ) {
+								isShown = true;
+								document.querySelector('a').classList.toggle('open');
+								document.querySelector('header cell:first-child').classList.toggle('opened');	
+							}
+						}
+					} else if (isShown && !hidding) {
+						hidding = true;
+						document.querySelector('a').classList.toggle('open');
+						document.querySelector('header cell:first-child').classList.toggle('opened');
+						document.querySelector('sidemenu').classList.add('slideOutLeft');
+						setTimeout(function() {
+							document.querySelector('sidemenu').style.display = 'none';
+							isShown = false;
+							hidding = false;
+						},500);
+					}
+				});
+
+				addMultiListener(document.querySelector('content'), 'mousemove touchmove', function (event) {
+					if ( clicking ) {
+						var deltax = pointerEventToXY(event).pageX - xdep;
+						if (deltax > 0 && !isShown && !hidding && !showing && xdep < wheretostart) {
+							document.querySelector('sidemenu').classList.remove('slideOutLeft');
+							document.querySelector('sidemenu').style.display = 'block';
+							if (deltax < document.querySelector('sidemenu').clientWidth) {
+								document.querySelector('sidemenu').style.right = (window.innerWidth - deltax) + 'px';
+							} else {
+								isShown = true;
+								document.querySelector('a').classList.toggle('open');
+								document.querySelector('header cell:first-child').classList.toggle('opened');
+							}
+
+						}
+					}
+				});
+			})();
+
+		</script>
+
+	</body>
+
+</html>
